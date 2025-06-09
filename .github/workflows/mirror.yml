@@ -1,0 +1,63 @@
+name: mirror
+
+on:
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  build:
+    strategy:
+      max-parallel: 1
+      matrix:
+        twitter_handle: [A2GOV]
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      - id: lower_handle
+        run: |
+          echo "handle=$(echo ${{ matrix.twitter_handle }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+      - name: install dependencies
+        run: npm install
+      - name: decrypt cookies
+        env:
+          COOKIE_KEY: ${{ secrets.COOKIE_KEY }}
+          COOKIE_NAME: cookies.${{ steps.lower_handle.outputs.handle }}.json
+          
+        run: |-
+          echo $COOKIE_KEY | gpg --batch --yes --passphrase-fd 0 -d cookies.json.gpg > $COOKIE_NAME
+      - name: sync
+        env:
+          TWITTER_USERNAME: ${{ secrets.TWITTER_USERNAME }}
+          TWITTER_PASSWORD: ${{ secrets.TWITTER_PASSWORD }}
+          BLUESKY_INSTANCE: bsky.social
+          BLUESKY_IDENTIFIER: ${{ vars[format('BLUESKY_IDENTIFIER_{0}', matrix.twitter_handle)] }}
+          BLUESKY_PASSWORD: ${{ secrets[format('BLUESKY_PASSWORD_{0}', matrix.twitter_handle)] }}
+          SYNC_BLUESKY: true
+          DAEMON: false
+        run: |-
+          touch .env
+          TWITTER_HANDLE=${{ matrix.twitter_handle }} npx touitomamout
+      - name: encrypt cookies
+        env:
+          COOKIE_KEY: ${{ secrets.COOKIE_KEY }}
+          COOKIE_NAME: cookies.${{ steps.lower_handle.outputs.handle }}.json
+        run: |-
+          echo $COOKIE_KEY | gpg --batch --yes --passphrase-fd 0 -o cookies.json.gpg -c $COOKIE_NAME
+    
+      - name: Commit and push if it changed
+        run: |-
+          git config --global --add safe.directory .
+          git config user.name "Automated"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A
+          timestamp=$(date -u)
+          git commit -m "Latest data: ${timestamp}" || exit 0
+          git push          
