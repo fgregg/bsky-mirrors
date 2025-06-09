@@ -22,8 +22,6 @@ jobs:
         run: |
           echo "handle=$(echo ${{ matrix.twitter_handle }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.head_ref }}
       - name: install dependencies
         run: npm install
       - name: decrypt cookies
