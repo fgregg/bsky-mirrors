@@ -46,7 +46,7 @@ jobs:
           touch .env
           TWITTER_HANDLE=${{ matrix.twitter_handle }} npx touitomamout
       - name: encrypt cookies
-        if: matrix.twitter_handle == "A2GOV"
+        if: matrix.twitter_handle == 'A2GOV'
         env:
           COOKIE_KEY: ${{ secrets.COOKIE_KEY }}
           COOKIE_NAME: cookies.${{ steps.lower_handle.outputs.handle }}.json
