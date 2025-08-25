@@ -11,7 +11,7 @@ jobs:
     strategy:
       max-parallel: 1
       matrix:
-        twitter_handle: [UMICHDPSS, WASHTENAWCC, AAACF, A2GOV, CATCHTHERIDE, A2SCHOOLS, A2PARKS, WASHTENAWROADS, WASHTENAWOCED, WASHTENAWGIS]
+        twitter_handle: [A2DDA, UMICHDPSS, WASHTENAWCC, AAACF, A2GOV, CATCHTHERIDE, A2SCHOOLS, A2PARKS, WASHTENAWROADS, WASHTENAWOCED, WASHTENAWGIS]
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
     permissions:
